@@ -6,7 +6,7 @@ export class AutoAeScriptsStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const dockerFunc = new lambda.DockerImageFunction(this, "DockerFunc", {
+    const updateWorld = new lambda.DockerImageFunction(this, "updateWorld", {
       code: lambda.DockerImageCode.fromImageAsset("./image", {
         file: "Dockerfile-update-world",
       }),
@@ -15,8 +15,8 @@ export class AutoAeScriptsStack extends cdk.Stack {
       architecture: lambda.Architecture.ARM_64,
     });
 
-    const functionUrl = dockerFunc.addFunctionUrl({
-      authType: lambda.FunctionUrlAuthType.NONE,
+    const updateWorldUrl = updateWorld.addFunctionUrl({
+      authType: lambda.FunctionUrlAuthType.AWS_IAM,
       cors: {
         allowedMethods: [lambda.HttpMethod.ALL],
         allowedHeaders: ["*"],
@@ -25,7 +25,7 @@ export class AutoAeScriptsStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, "FunctionUrlValue", {
-      value: functionUrl.url,
+      value: updateWorldUrl.url,
     });
   }
 }
