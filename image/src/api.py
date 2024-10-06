@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from bs4.element import Tag
 from requests.models import Response
 
-from meta_data import AVAILABLE_AIRCRAFT
+from src.meta_data import AVAILABLE_AIRCRAFT
 
 
 if TYPE_CHECKING:
