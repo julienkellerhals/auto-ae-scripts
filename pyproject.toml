@@ -1,0 +1,17 @@
+[project]
+name = "auto-ae-scripts"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "beautifulsoup4>=4.12.3",
+    "debugpy>=1.8.6",
+    "lxml>=5.3.0",
+    "numpy>=2.1.1",
+    "pandas>=2.2.2",
+    "psycopg2-binary>=2.9.9",
+    "pylint>=3.2.7",
+    "requests>=2.32.3",
+    "sqlalchemy>=2.0.35",
+]
