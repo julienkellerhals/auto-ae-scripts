@@ -8,8 +8,8 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import mapped_column
 
-from db import Base
-from db import ENGINE
+from models.db import Base
+from models.db import ENGINE
 
 
 class Accounts(Base):
