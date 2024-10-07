@@ -1,10 +1,13 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as dotenv from "dotenv";
 
 export class AutoAeScriptsStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    dotenv.config();
 
     // Update world
 
@@ -13,8 +16,14 @@ export class AutoAeScriptsStack extends cdk.Stack {
         file: "Dockerfile-update-world",
       }),
       memorySize: 128,
-      timeout: cdk.Duration.seconds(5),
+      timeout: cdk.Duration.seconds(10),
       architecture: lambda.Architecture.ARM_64,
+      environment: {
+        USERNAME: process.env.USERNAME || "",
+        PASSWORD: process.env.PASSWORD || "",
+        HOSTNAME: process.env.DB_URL || "",
+        DATABASE: process.env.DATABASE || "",
+      },
     });
 
     const updateWorldUrl = updateWorld.addFunctionUrl({
@@ -42,6 +51,12 @@ export class AutoAeScriptsStack extends cdk.Stack {
         memorySize: 128,
         timeout: cdk.Duration.seconds(5),
         architecture: lambda.Architecture.ARM_64,
+        environment: {
+          USERNAME: process.env.USERNAME || "",
+          PASSWORD: process.env.PASSWORD || "",
+          HOSTNAME: process.env.DB_URL || "",
+          DATABASE: process.env.DATABASE || "",
+        },
       }
     );
 
@@ -68,8 +83,14 @@ export class AutoAeScriptsStack extends cdk.Stack {
           file: "Dockerfile-update-aircraft",
         }),
         memorySize: 128,
-        timeout: cdk.Duration.seconds(5),
+        timeout: cdk.Duration.seconds(10),
         architecture: lambda.Architecture.ARM_64,
+        environment: {
+          USERNAME: process.env.USERNAME || "",
+          PASSWORD: process.env.PASSWORD || "",
+          HOSTNAME: process.env.DB_URL || "",
+          DATABASE: process.env.DATABASE || "",
+        },
       }
     );
 
@@ -96,8 +117,14 @@ export class AutoAeScriptsStack extends cdk.Stack {
           file: "Dockerfile-run-configuration",
         }),
         memorySize: 256,
-        timeout: cdk.Duration.seconds(20),
+        timeout: cdk.Duration.seconds(600),
         architecture: lambda.Architecture.ARM_64,
+        environment: {
+          USERNAME: process.env.USERNAME || "",
+          PASSWORD: process.env.PASSWORD || "",
+          HOSTNAME: process.env.DB_URL || "",
+          DATABASE: process.env.DATABASE || "",
+        },
       }
     );
 
