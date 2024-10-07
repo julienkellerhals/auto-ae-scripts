@@ -27,6 +27,8 @@ class Configurations(Base):
     account_id: Mapped[int]
     user_id: Mapped[int]
     aircraft_id: Mapped[int]
+    inserted_at: Mapped[str]
+    updated_at: Mapped[str]
 
 
 def get_configuration_by_id(_id: int) -> dict:

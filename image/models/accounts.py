@@ -81,7 +81,7 @@ def update_airlines(username: str, user_id: int, airlines: pd.DataFrame) -> None
                 updated_at=str(datetime.now()),
             )
             session.add(account)
-            session.commit()
+    session.commit()
 
 
 def add_session_id(

@@ -35,4 +35,4 @@ def add_aircraft(account_id: int, aircraft_stats: pd.DataFrame, user_id: int):
             updated_at=str(datetime.now()),
         )
         session.add(aircraft)
-        session.commit()
+    session.commit()
