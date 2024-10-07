@@ -19,8 +19,8 @@ export class AutoAeScriptsStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(10),
       architecture: lambda.Architecture.ARM_64,
       environment: {
-        USERNAME: process.env.USERNAME || "",
-        PASSWORD: process.env.PASSWORD || "",
+        USERNAME: process.env.DB_USERNAME || "",
+        PASSWORD: process.env.DB_PASSWORD || "",
         HOSTNAME: process.env.DB_URL || "",
         DATABASE: process.env.DATABASE || "",
       },
@@ -52,8 +52,8 @@ export class AutoAeScriptsStack extends cdk.Stack {
         timeout: cdk.Duration.seconds(5),
         architecture: lambda.Architecture.ARM_64,
         environment: {
-          USERNAME: process.env.USERNAME || "",
-          PASSWORD: process.env.PASSWORD || "",
+          USERNAME: process.env.DB_USERNAME || "",
+          PASSWORD: process.env.DB_PASSWORD || "",
           HOSTNAME: process.env.DB_URL || "",
           DATABASE: process.env.DATABASE || "",
         },
@@ -86,8 +86,8 @@ export class AutoAeScriptsStack extends cdk.Stack {
         timeout: cdk.Duration.seconds(10),
         architecture: lambda.Architecture.ARM_64,
         environment: {
-          USERNAME: process.env.USERNAME || "",
-          PASSWORD: process.env.PASSWORD || "",
+          USERNAME: process.env.DB_USERNAME || "",
+          PASSWORD: process.env.DB_PASSWORD || "",
           HOSTNAME: process.env.DB_URL || "",
           DATABASE: process.env.DATABASE || "",
         },
@@ -120,8 +120,8 @@ export class AutoAeScriptsStack extends cdk.Stack {
         timeout: cdk.Duration.seconds(600),
         architecture: lambda.Architecture.ARM_64,
         environment: {
-          USERNAME: process.env.USERNAME || "",
-          PASSWORD: process.env.PASSWORD || "",
+          USERNAME: process.env.DB_USERNAME || "",
+          PASSWORD: process.env.DB_PASSWORD || "",
           HOSTNAME: process.env.DB_URL || "",
           DATABASE: process.env.DATABASE || "",
         },
