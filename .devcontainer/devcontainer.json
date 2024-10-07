@@ -33,5 +33,9 @@
       ]
     }
   },
-  "postCreateCommand": "npm install -g aws-cdk"
+  "postCreateCommand": "npm install -g aws-cdk",
+  "runArgs": [
+    "--env-file",
+    ".env"
+  ]
 }
