@@ -95,11 +95,16 @@ def main(flight_id: int) -> None:
         if flight.avg_freq < int(configuration["min_frequency"]):
             set_configuration_criteria(flight_id, False)
             flight.configuration_criteria = False
+            return
 
     if configuration["max_frequency"] is not None:
         if flight.avg_freq > int(configuration["max_frequency"]):
             set_configuration_criteria(flight_id, False)
             flight.configuration_criteria = False
+            return
+
+    set_configuration_criteria(flight_id, True)
+    flight.configuration_criteria = True
 
     if flight.configuration_criteria:
         create_flight(
