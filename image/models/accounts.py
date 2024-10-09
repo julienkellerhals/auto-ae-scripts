@@ -20,8 +20,8 @@ class Accounts(Base):
     airline: Mapped[str]
     session_id: Mapped[Optional[str]]
     user_id: Mapped[str]
-    inserted_at: Mapped[str]
-    updated_at: Mapped[str]
+    inserted_at: Mapped[datetime]
+    updated_at: Mapped[datetime]
 
 
 def get_account_by_username_world_airline(
@@ -77,8 +77,8 @@ def update_airlines(username: str, user_id: int, airlines: pd.DataFrame) -> None
                 world=airline["worldName"],
                 airline=airline["name"],
                 user_id=user_id,
-                inserted_at=str(datetime.now()),
-                updated_at=str(datetime.now()),
+                inserted_at=datetime.now(),
+                updated_at=datetime.now(),
             )
             session.add(account)
     session.commit()

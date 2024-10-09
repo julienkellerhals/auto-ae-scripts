@@ -1,5 +1,6 @@
 import sys
 from typing import Optional
+from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Mapped
@@ -27,8 +28,8 @@ class Configurations(Base):
     account_id: Mapped[int]
     user_id: Mapped[int]
     aircraft_id: Mapped[int]
-    inserted_at: Mapped[str]
-    updated_at: Mapped[str]
+    inserted_at: Mapped[datetime]
+    updated_at: Mapped[datetime]
 
 
 def get_configuration_by_id(_id: int) -> dict:

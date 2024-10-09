@@ -17,8 +17,8 @@ class Aircraft(Base):
     min_runway: Mapped[int]
     account_id: Mapped[int]
     user_id: Mapped[int]
-    inserted_at: Mapped[str]
-    updated_at: Mapped[str]
+    inserted_at: Mapped[datetime]
+    updated_at: Mapped[datetime]
 
 
 def add_aircraft(account_id: int, aircraft_stats: pd.DataFrame, user_id: int):
@@ -31,8 +31,8 @@ def add_aircraft(account_id: int, aircraft_stats: pd.DataFrame, user_id: int):
             min_runway=aircraft["min_runway"],
             account_id=account_id,
             user_id=user_id,
-            inserted_at=str(datetime.now()),
-            updated_at=str(datetime.now()),
+            inserted_at=datetime.now(),
+            updated_at=datetime.now(),
         )
         session.add(aircraft)
     session.commit()
