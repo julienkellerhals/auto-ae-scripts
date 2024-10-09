@@ -19,9 +19,9 @@ export class AutoAeScriptsStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(10),
       architecture: lambda.Architecture.ARM_64,
       environment: {
-        USERNAME: process.env.DB_USERNAME || "",
-        PASSWORD: process.env.DB_PASSWORD || "",
-        HOSTNAME: process.env.DB_URL || "",
+        DB_USERNAME: process.env.DB_USERNAME || "",
+        DB_PASSWORD: process.env.DB_PASSWORD || "",
+        DB_URL: process.env.DB_URL || "",
         DATABASE: process.env.DATABASE || "",
       },
     });
@@ -52,9 +52,9 @@ export class AutoAeScriptsStack extends cdk.Stack {
         timeout: cdk.Duration.seconds(5),
         architecture: lambda.Architecture.ARM_64,
         environment: {
-          USERNAME: process.env.DB_USERNAME || "",
-          PASSWORD: process.env.DB_PASSWORD || "",
-          HOSTNAME: process.env.DB_URL || "",
+          DB_USERNAME: process.env.DB_USERNAME || "",
+          DB_PASSWORD: process.env.DB_PASSWORD || "",
+          DB_URL: process.env.DB_URL || "",
           DATABASE: process.env.DATABASE || "",
         },
       }
@@ -86,9 +86,9 @@ export class AutoAeScriptsStack extends cdk.Stack {
         timeout: cdk.Duration.seconds(10),
         architecture: lambda.Architecture.ARM_64,
         environment: {
-          USERNAME: process.env.DB_USERNAME || "",
-          PASSWORD: process.env.DB_PASSWORD || "",
-          HOSTNAME: process.env.DB_URL || "",
+          DB_USERNAME: process.env.DB_USERNAME || "",
+          DB_PASSWORD: process.env.DB_PASSWORD || "",
+          DB_URL: process.env.DB_URL || "",
           DATABASE: process.env.DATABASE || "",
         },
       }
@@ -107,6 +107,40 @@ export class AutoAeScriptsStack extends cdk.Stack {
       value: updateAircraftUrl.url,
     });
 
+    // Update flights
+
+    const updateFlights = new lambda.DockerImageFunction(
+      this,
+      "updateFlights",
+      {
+        code: lambda.DockerImageCode.fromImageAsset("./image", {
+          file: "Dockerfile-update-flights",
+        }),
+        memorySize: 128,
+        timeout: cdk.Duration.seconds(30),
+        architecture: lambda.Architecture.ARM_64,
+        environment: {
+          DB_USERNAME: process.env.DB_USERNAME || "",
+          DB_PASSWORD: process.env.DB_PASSWORD || "",
+          DB_URL: process.env.DB_URL || "",
+          DATABASE: process.env.DATABASE || "",
+        },
+      }
+    );
+
+    const updateFlightsUrl = updateFlights.addFunctionUrl({
+      authType: lambda.FunctionUrlAuthType.AWS_IAM,
+      cors: {
+        allowedMethods: [lambda.HttpMethod.ALL],
+        allowedHeaders: ["*"],
+        allowedOrigins: ["*"],
+      },
+    });
+
+    new cdk.CfnOutput(this, "updateFlightsUrl", {
+      value: updateFlightsUrl.url,
+    });
+
     // Run config
 
     const runConfiguration = new lambda.DockerImageFunction(
@@ -116,13 +150,13 @@ export class AutoAeScriptsStack extends cdk.Stack {
         code: lambda.DockerImageCode.fromImageAsset("./image", {
           file: "Dockerfile-run-configuration",
         }),
-        memorySize: 256,
-        timeout: cdk.Duration.seconds(600),
+        memorySize: 128,
+        timeout: cdk.Duration.seconds(60),
         architecture: lambda.Architecture.ARM_64,
         environment: {
-          USERNAME: process.env.DB_USERNAME || "",
-          PASSWORD: process.env.DB_PASSWORD || "",
-          HOSTNAME: process.env.DB_URL || "",
+          DB_USERNAME: process.env.DB_USERNAME || "",
+          DB_PASSWORD: process.env.DB_PASSWORD || "",
+          DB_URL: process.env.DB_URL || "",
           DATABASE: process.env.DATABASE || "",
         },
       }
