@@ -496,12 +496,12 @@ def create_flight(
     flight: Flights,
     new_flights_page,
     available_aircraft_df: pd.DataFrame,
-):
+) -> Flights:
     # get prices and ifs
     flight_info = new_flights_page.find("div", "prices")
     if flight_info is None:
         print("Error in page (no flights displayed / available)")
-        return
+        return flight
 
     flight_info = flight_info.contents[0]
     flight_info_prices = []
@@ -527,6 +527,8 @@ def create_flight(
     available_aircraft_df = available_aircraft_df.sort_values("hours")
     if not available_aircraft_df.empty:
         print(available_aircraft_df)
+    else:
+        return flight
 
     tot_passenger_y = 0
     tot_frequency = 0
@@ -546,50 +548,52 @@ def create_flight(
         "glairport": departure_airport_code,
         "qty": 1,
     }
+
+    # check slots
+    origin_slot_available = check_origin_slot(
+        session_id=session_id,
+        autoSlots=auto_slot,
+        autoTerminal=auto_terminal,
+        airport=departure_airport_code,
+    )
+
+    target_slot_available = check_target_slot(
+        session_id=session_id,
+        autoSlots=auto_slot,
+        autoTerminal=auto_terminal,
+        airport=flight.airport,
+        airportSlots=flight.slots,
+        flightReqSlots=flight.avg_freq,
+        gatesAvailable=flight.gates_available,
+    )
+
+    if not (origin_slot_available & target_slot_available):
+        return flight
+
     for _, available_aircraft_row in available_aircraft_df.iterrows():
-        if available_aircraft_row["frequency"] >= available_aircraft_row["avgFreq"]:
+        if available_aircraft_row["frequency"] >= flight.avg_freq:
             # case when required frequency less than available
             add_flights_post_data["freq_" + available_aircraft_row["aircraft"]] = (
-                available_aircraft_row["avgFreq"]
+                flight.avg_freq
             )
 
-            # check slots
-            origin_slot_available = check_origin_slot(
+            # add flight
+            add_flight(
                 session_id=session_id,
-                autoSlots=auto_slot,
-                autoTerminal=auto_terminal,
-                airport=departure_airport_code,
+                city1=departure_airport_code,
+                city2=flight.airport,
+                addFlightsPostData=add_flights_post_data,
+                frequency=flight.avg_freq,
             )
+            flight.flight_created = True
+            return flight
 
-            target_slot_available = check_target_slot(
-                session_id=session_id,
-                autoSlots=auto_slot,
-                autoTerminal=auto_terminal,
-                airport=flight.airport,
-                airportSlots=flight.slots,
-                flightReqSlots=available_aircraft_row["avgFreq"],
-                gatesAvailable=flight.gates_available,
-            )
-
-            if origin_slot_available & target_slot_available:
-                # add flight
-                add_flight(
-                    session_id=session_id,
-                    city1=departure_airport_code,
-                    city2=flight.airport,
-                    addFlightsPostData=add_flights_post_data,
-                    frequency=available_aircraft_row["avgFreq"],
-                )
-            return
-
-        if (
-            tot_frequency + available_aircraft_row["frequency"]
-        ) > available_aircraft_row["avgFreq"]:
+        if (tot_frequency + available_aircraft_row["frequency"]) > flight.avg_freq:
             # case when enough flights were added
             add_flights_post_data["freq_" + available_aircraft_row["aircraft"]] = (
-                available_aircraft_row["avgFreq"] - tot_frequency
+                flight.avg_freq - tot_frequency
             )
-            tot_frequency += available_aircraft_row["avgFreq"] - tot_frequency
+            tot_frequency += flight.avg_freq - tot_frequency
         else:
             # continue adding flights
             add_flights_post_data["freq_" + available_aircraft_row["aircraft"]] = (
@@ -603,34 +607,17 @@ def create_flight(
 
         # check if the demand is meat (only checks Economy)
         if tot_passenger_y >= flight.flight_demand_y:
-            # check slots, see func
-            origin_slot_available = check_origin_slot(
+            # add flight
+            add_flight(
                 session_id=session_id,
-                autoSlots=auto_slot,
-                autoTerminal=auto_terminal,
-                airport=departure_airport_code,
+                city1=departure_airport_code,
+                city2=flight.airport,
+                addFlightsPostData=add_flights_post_data,
+                frequency=flight.avg_freq,
             )
-
-            target_slot_available = check_target_slot(
-                session_id=session_id,
-                autoSlots=auto_slot,
-                autoTerminal=auto_terminal,
-                airport=flight.airport,
-                airportSlots=flight.slots,
-                flightReqSlots=available_aircraft_row["avgFreq"],
-                gatesAvailable=flight.gates_available,
-            )
-
-            if origin_slot_available & target_slot_available:
-                # add flight
-                add_flight(
-                    session_id=session_id,
-                    city1=departure_airport_code,
-                    city2=flight.airport,
-                    addFlightsPostData=add_flights_post_data,
-                    frequency=available_aircraft_row["avgFreq"],
-                )
-            return
+            flight.flight_created = True
+            return flight
+    return flight
 
 
 def check_origin_slot(session_id: str, autoSlots, autoTerminal, airport):
@@ -722,7 +709,7 @@ def check_target_slot(
         airportSlots = int(airportSlots)
     except TypeError:
         airportSlots = 0
-    # check if there is enought slots, else buy some
+    # check if there is enough slots, else buy some
     # +2 is to force to buy new slots / terminal when its almost full
     # because the termmarket page does not display terminal used at 100%
     # and passing from correct page would require a lot of request
