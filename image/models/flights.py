@@ -126,3 +126,41 @@ def set_configuration_criteria(
 
     flight.configuration_criteria = state
     session.commit()
+
+
+def set_flight_created(
+    flight_id: int,
+    state: bool,
+) -> None:
+    session = Session(ENGINE)
+
+    flight = get_flight_by_id(flight_id, session)
+
+    if flight is None:
+        sys.exit()
+
+    flight.flight_created = state
+    session.commit()
+
+
+def update_flight(flight_id: int, _flight: Flights) -> None:
+    session = Session(ENGINE)
+
+    flight = get_flight_by_id(flight_id, session)
+
+    if flight is None:
+        sys.exit()
+
+    flight.slots = _flight.slots
+    flight.gates_available = _flight.gates_available
+    flight.freq_f = _flight.freq_f
+    flight.flight_demand_f = _flight.flight_demand_f
+    flight.freq_c = _flight.freq_c
+    flight.flight_demand_c = _flight.flight_demand_c
+    flight.freq_y = _flight.freq_y
+    flight.flight_demand_y = _flight.flight_demand_y
+    flight.avg_freq = _flight.avg_freq
+    flight.configuration_criteria = _flight.configuration_criteria
+    flight.flight_created = _flight.flight_created
+    flight.configuration_id = _flight.configuration_id
+    session.commit()
