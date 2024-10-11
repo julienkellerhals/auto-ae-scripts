@@ -19,7 +19,7 @@ class Accounts(Base):
     world: Mapped[str]
     airline: Mapped[str]
     session_id: Mapped[Optional[str]]
-    user_id: Mapped[str]
+    user_id: Mapped[int]
     inserted_at: Mapped[datetime]
     updated_at: Mapped[datetime]
 
