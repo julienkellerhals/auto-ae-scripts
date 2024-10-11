@@ -117,7 +117,7 @@ export class AutoAeScriptsStack extends cdk.Stack {
           file: "Dockerfile-update-flights",
         }),
         memorySize: 128,
-        timeout: cdk.Duration.seconds(30),
+        timeout: cdk.Duration.seconds(60),
         architecture: lambda.Architecture.ARM_64,
         environment: {
           DB_USERNAME: process.env.DB_USERNAME || "",
@@ -151,7 +151,7 @@ export class AutoAeScriptsStack extends cdk.Stack {
           file: "Dockerfile-run-configuration",
         }),
         memorySize: 128,
-        timeout: cdk.Duration.seconds(60),
+        timeout: cdk.Duration.seconds(120),
         architecture: lambda.Architecture.ARM_64,
         environment: {
           DB_USERNAME: process.env.DB_USERNAME || "",
