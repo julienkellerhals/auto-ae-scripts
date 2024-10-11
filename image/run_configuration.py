@@ -5,6 +5,7 @@ from models.flights import (
     get_flight_by_id,
     add_flight_demand,
     add_frequency,
+    update_flight,
     set_configuration_criteria,
 )
 from models.accounts import get_account_by_id
@@ -20,14 +21,19 @@ def main(flight_id: int) -> None:
     if configuration["auto_hub"] is True:
         add_hub(account.session_id, configuration["departure_airport_code"])
 
-    # Demand
-    flight_demand_f, flight_demand_c, flight_demand_y = get_flight_demand(
-        account.session_id, flight
-    )
-    add_flight_demand(flight_id, flight_demand_f, flight_demand_c, flight_demand_y)
-    flight.flight_demand_f = flight_demand_f
-    flight.flight_demand_c = flight_demand_c
-    flight.flight_demand_y = flight_demand_y
+    if (
+        flight.flight_demand_f is None
+        or flight.flight_demand_c is None
+        or flight.flight_demand_y is None
+    ):
+        # Demand
+        flight_demand_f, flight_demand_c, flight_demand_y = get_flight_demand(
+            account.session_id, flight
+        )
+        add_flight_demand(flight_id, flight_demand_f, flight_demand_c, flight_demand_y)
+        flight.flight_demand_f = flight_demand_f
+        flight.flight_demand_c = flight_demand_c
+        flight.flight_demand_y = flight_demand_y
 
     # Availability
     available_aircraft_df, new_flights_page = get_available_aircraft(
@@ -107,7 +113,7 @@ def main(flight_id: int) -> None:
     flight.configuration_criteria = True
 
     if flight.configuration_criteria:
-        create_flight(
+        _flight = create_flight(
             session_id=account.session_id,
             departure_airport_code=configuration["departure_airport_code"],
             auto_slot=configuration["auto_slot"],
@@ -116,6 +122,7 @@ def main(flight_id: int) -> None:
             new_flights_page=new_flights_page,
             available_aircraft_df=available_aircraft_df,
         )
+        update_flight(flight_id, _flight)
 
 
 def handler(event, context):
