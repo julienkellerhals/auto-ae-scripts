@@ -1,4 +1,4 @@
-from src.api import get_flights
+from src.flight import get_flights
 from models.flights import add_flight
 from models.accounts import get_account_by_id
 from models.configurations import get_configuration_by_id

@@ -1,6 +1,7 @@
 import numpy as np
 
-from src.api import add_hub, create_flight, get_flight_demand, get_available_aircraft
+from src.api import add_hub
+from src.flight import create_flight, get_flight_demand, get_available_aircraft
 from models.flights import (
     get_flight_by_id,
     add_flight_demand,

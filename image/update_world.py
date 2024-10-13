@@ -1,4 +1,4 @@
-from src.api import get_page_session, do_login
+from src.world import get_page_session, do_login
 from models.accounts import update_airlines
 
 
@@ -11,3 +11,10 @@ def main(username: str, password: str, user_id: int) -> None:
 def handler(event, context):
     main(event["username"], event["password"], int(event["user_id"]))
     return {"statusCode": 200, "body": event}
+
+
+if __name__ == "__main__":
+    USERNAME = ""
+    PASSWORD = ""
+    USER_ID = 0
+    main(USERNAME, PASSWORD, USER_ID)

@@ -1,4 +1,4 @@
-from src.api import get_aircraft_stats
+from src.aircraft import get_aircraft_stats
 from models.accounts import get_account_by_id
 from models.aircraft import update_aircraft
 

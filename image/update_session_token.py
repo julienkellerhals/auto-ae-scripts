@@ -1,4 +1,4 @@
-from src.api import get_page_session, do_login, do_enter_world
+from src.world import get_page_session, do_login, do_enter_world
 from models.accounts import add_session_id
 
 
@@ -25,3 +25,12 @@ def handler(event, context):
         int(event["user_id"]),
     )
     return {"statusCode": 200, "body": event}
+
+
+if __name__ == "__main__":
+    USERNAME = ""
+    PASSWORD = ""
+    WORLD = ""
+    AIRLINE = ""
+    USER_ID = 0
+    main(USERNAME, PASSWORD, WORLD, AIRLINE, USER_ID)
