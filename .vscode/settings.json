@@ -16,6 +16,7 @@
         "charliermarsh",
         "citext",
         "confirmaddflights",
+        "confirmationboxtitle",
         "debugpy",
         "devcontainers",
         "dotenv",
