@@ -83,7 +83,7 @@ export class AutoAeScriptsStack extends cdk.Stack {
           file: "Dockerfile-update-aircraft",
         }),
         memorySize: 128,
-        timeout: cdk.Duration.seconds(10),
+        timeout: cdk.Duration.seconds(20),
         architecture: lambda.Architecture.ARM_64,
         environment: {
           DB_USERNAME: process.env.DB_USERNAME || "",
