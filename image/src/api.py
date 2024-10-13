@@ -623,21 +623,23 @@ def run_flight_creation(
             if error_message is None:
                 flight.flight_created = True
                 return flight
+    else:
+        # case when required frequency less than available
+        add_flights_post_data["freq_" + current_aircraft["aircraft"]] = (
+            current_aircraft["frequency"]
+        )
 
-    # case when required frequency less than available
-    add_flights_post_data["freq_" + current_aircraft["aircraft"]] = current_aircraft[
-        "frequency"
-    ]
+        run_flight_creation(
+            available_aircraft_df=available_aircraft_df,
+            session_id=session_id,
+            flight=flight,
+            departure_airport_code=departure_airport_code,
+            add_flights_post_data=add_flights_post_data,
+            index=index + 1,
+            current_freq=current_aircraft["frequency"] + current_freq,
+        )
+        return flight
 
-    run_flight_creation(
-        available_aircraft_df=available_aircraft_df,
-        session_id=session_id,
-        flight=flight,
-        departure_airport_code=departure_airport_code,
-        add_flights_post_data=add_flights_post_data,
-        index=index + 1,
-        current_freq=current_aircraft["frequency"] + current_freq,
-    )
     return flight
 
 
