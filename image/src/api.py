@@ -524,17 +524,42 @@ def create_flight(
             flight_info_ifs.append(all_flight_ifs.attrs["href"].split("id=")[-1:][0])
 
     # find planes to use
-    available_aircraft_df = available_aircraft_df.sort_values("hours")
+    available_aircraft_df = available_aircraft_df.sort_values("frequency")
     if not available_aircraft_df.empty:
         print(available_aircraft_df)
     else:
         return flight
 
-    tot_passenger_y = 0
-    tot_frequency = 0
-    add_flights_post_data = {
+    if sum(available_aircraft_df["frequency"]) < flight.avg_freq:
+        return flight
+
+    add_flights_post_data = create_flight_post_data(
+        departure_airport_code=departure_airport_code,
+        target_airport=flight.airport,
+        flight_info_prices=flight_info_prices,
+        flight_info_ifs=flight_info_ifs,
+    )
+
+    flight = run_flight_creation(
+        available_aircraft_df=available_aircraft_df,
+        session_id=session_id,
+        flight=flight,
+        departure_airport_code=departure_airport_code,
+        add_flights_post_data=add_flights_post_data,
+    )
+
+    return flight
+
+
+def create_flight_post_data(
+    departure_airport_code: str,
+    target_airport: str,
+    flight_info_prices: list[int],
+    flight_info_ifs: list[int],
+) -> dict:
+    return {
         "city1": departure_airport_code,
-        "city2": flight.airport,
+        "city2": target_airport,
         "addflights": 1,
         "addflights_filter_actype": 0,
         "addflights_filter_hours": 1,
@@ -549,74 +574,70 @@ def create_flight(
         "qty": 1,
     }
 
-    # check slots
-    origin_slot_available = check_origin_slot(
-        session_id=session_id,
-        autoSlots=auto_slot,
-        autoTerminal=auto_terminal,
-        airport=departure_airport_code,
-    )
 
-    target_slot_available = check_target_slot(
-        session_id=session_id,
-        autoSlots=auto_slot,
-        autoTerminal=auto_terminal,
-        airport=flight.airport,
-        airportSlots=flight.slots,
-        flightReqSlots=flight.avg_freq,
-        gatesAvailable=flight.gates_available,
-    )
+def run_flight_creation(
+    available_aircraft_df: pd.DataFrame,
+    session_id: str,
+    flight: Flights,
+    departure_airport_code: str,
+    add_flights_post_data: dict,
+    index: int = 0,
+    current_freq: int = 0,
+) -> Flights:
+    current_aircraft = available_aircraft_df.iloc[index]
 
-    if not (origin_slot_available & target_slot_available):
-        return flight
-
-    for _, available_aircraft_row in available_aircraft_df.iterrows():
-        if available_aircraft_row["frequency"] >= flight.avg_freq:
-            # case when required frequency less than available
-            add_flights_post_data["freq_" + available_aircraft_row["aircraft"]] = (
-                flight.avg_freq
-            )
-
-            # add flight
-            add_flight(
-                session_id=session_id,
-                city1=departure_airport_code,
-                city2=flight.airport,
-                addFlightsPostData=add_flights_post_data,
-                frequency=flight.avg_freq,
-            )
-            flight.flight_created = True
-            return flight
-
-        if (tot_frequency + available_aircraft_row["frequency"]) > flight.avg_freq:
-            # case when enough flights were added
-            add_flights_post_data["freq_" + available_aircraft_row["aircraft"]] = (
-                flight.avg_freq - tot_frequency
-            )
-            tot_frequency += flight.avg_freq - tot_frequency
-        else:
-            # continue adding flights
-            add_flights_post_data["freq_" + available_aircraft_row["aircraft"]] = (
-                available_aircraft_row["frequency"]
-            )
-            tot_frequency += available_aircraft_row["frequency"]
-
-        tot_passenger_y += (
-            available_aircraft_row["seatY"] * available_aircraft_row["frequency"]
+    if current_aircraft["frequency"] > flight.avg_freq - current_freq:
+        # case when required frequency less than available
+        add_flights_post_data["freq_" + current_aircraft["aircraft"]] = (
+            flight.avg_freq - current_freq
         )
 
-        # check if the demand is meat (only checks Economy)
-        if tot_passenger_y >= flight.flight_demand_y:
-            # add flight
-            add_flight(
+        error_message = add_flight(
+            session_id=session_id,
+            city1=departure_airport_code,
+            city2=flight.airport,
+            add_flight_post_data=add_flights_post_data,
+        )
+
+        if error_message is None:
+            flight.flight_created = True
+            return flight
+
+        if error_message == "Not Enough Slots":
+            # buy slots
+            add_slots_request_error = True
+            slots_lease_data = {"quicklease": f"Lease 1 {flight.airport}"}
+            while add_slots_request_error:
+                _, add_slots_request_error, _ = post_request(
+                    url="http://ae31.airline-empires.com/rentgate.php",
+                    cookies={"PHPSESSID": session_id},
+                    data=slots_lease_data,
+                )
+
+            error_message = add_flight(
                 session_id=session_id,
                 city1=departure_airport_code,
                 city2=flight.airport,
-                addFlightsPostData=add_flights_post_data,
-                frequency=flight.avg_freq,
+                add_flight_post_data=add_flights_post_data,
             )
-            flight.flight_created = True
-            return flight
+            if error_message is None:
+                flight.flight_created = True
+                return flight
+
+    # case when required frequency less than available
+    add_flights_post_data["freq_" + current_aircraft["aircraft"]] = current_aircraft[
+        "frequency"
+    ]
+
+    run_flight_creation(
+        available_aircraft_df=available_aircraft_df,
+        session_id=session_id,
+        flight=flight,
+        departure_airport_code=departure_airport_code,
+        add_flights_post_data=add_flights_post_data,
+        index=index + 1,
+        current_freq=current_aircraft["frequency"] + current_freq,
+    )
     return flight
 
 
@@ -687,7 +708,7 @@ def check_origin_slot(session_id: str, autoSlots, autoTerminal, airport):
             slotsAvailable = True
         else:
             print(
-                "Automatically buy termial option is off. Flight may not be created due to slot restrictions!"
+                "Automatically buy terminal option is off. Flight may not be created due to slot restrictions!"
             )
     return slotsAvailable
 
@@ -780,17 +801,35 @@ def add_hub(session_id: str, airport: str) -> None:
         )
 
 
-def add_flight(session_id, city1, city2, addFlightsPostData, frequency):
-    addFlightsReqError = True
-    while addFlightsReqError:
-        _, addFlightsReqError, _ = post_request(
-            url="http://ae31.airline-empires.com/route_details.php?city1={}&city2={}".format(
-                city1, city2
-            ),
+def add_flight(
+    session_id: str,
+    city1: str,
+    city2: str,
+    add_flight_post_data: dict,
+) -> str | None:
+    add_flight_request_error = True
+    while add_flight_request_error:
+        add_flight_response, add_flight_request_error, _ = post_request(
+            url=f"http://ae31.airline-empires.com/route_details.php?city1={city1}&city2={city2}",
             cookies={"PHPSESSID": session_id},
-            data=addFlightsPostData,
+            data=add_flight_post_data,
         )
-    print("\tAdded {} flight(s)".format(int(frequency)))
+        add_flight_page = BeautifulSoup(add_flight_response.text, "html.parser")
+
+    error_message_container = add_flight_page.find(
+        "div", class_="message_failure_withtitle"
+    )
+    if error_message_container is None:
+        return None
+
+    error_message_title = error_message_container.find(
+        "div",
+        class_="confirmationboxtitle",  # type: ignore
+    )
+    if error_message_title is None:
+        return None
+
+    return error_message_title.text
 
 
 def getRoutes(session_id, startIdx):
